@@ -1,24 +1,11 @@
 let mic;
-let numCamadas = 7;
-let espacamento = 2; 
-
-
-let estadosCamadas = [];
+let numLayers = 7;
+let espacamentoSuave = 2;
 
 function setup() {
   createCanvas(windowWidth, windowHeight, WEBGL);
-  
-  // Configura o mic
   mic = new p5.AudioIn();
   mic.start();
-
-
-  for (let i = 0; i < numCamadas; i++) {
-    estadosCamadas.push({
-      corAlternada: random() > 0.5,
-      offsetGlitch: 0
-    });
-  }
 }
 
 function windowResized() {
@@ -26,73 +13,93 @@ function windowResized() {
 }
 
 function mousePressed() {
-  
-  userStartAudio(); 
+  userStartAudio();
 }
 
 function draw() {
-  
   push();
   resetMatrix();
   translate(-width / 2, -height / 2);
-  background(5, 2, 10);
+  
+  background(5, 2, 10); 
 
   noStroke();
-  for (let i = 0; i < 8; i++) {
-    let y = random(height);
-    let h = random(4, 15);
-    if (i % 2 === 0) {
-      fill(50, 255, 120, 40);
+  let numFaixas = 12;
+  for (let i = 0; i < numFaixas; i++) {
+    let yF = random(height);
+    let hF = random(2, 25);
+    
+    if (i % 3 === 0) {
+      fill(50, 255, 120, random(30, 90)); 
+    } else if (i % 3 === 1) {
+      fill(180, 0, 255, random(30, 90));
     } else {
-      fill(180, 0, 255, 40);
+      fill(0, 220, 255, random(30, 90)); 
     }
-    rect(0, y, width, h);
+    
+    let wF = random(1) < 0.3 ? width : random(50, width * 0.8);
+    let xF = random(width) - (wF === width ? 0 : wF * 0.5);
+    
+    rect(xF, yF, wF, hF);
   }
-  stroke(100, 0, 150, 30);
-  for (let y = 0; y < height; y += 6) {
+
+
+  strokeWeight(1);
+  for (let y = 0; y < height; y += 4) {
+    stroke(100, 0, 150, 40);
     line(0, y, width, y);
   }
   pop();
 
-  let volume = mic.getLevel();
-  
-  let somDesejado = map(volume, 0, 0.05, 2, 120);
-  espacamento = lerp(espacamento, somDesejado, 0.1); 
+  let vol = mic.getLevel();
+  let somSensivel = vol * 12; 
+  let espacamentoAlvo = map(somSensivel, 0, 0.2, 2, 100);
+  espacamentoSuave = lerp(espacamentoSuave, espacamentoAlvo, 0.08);
 
+  rotateY(frameCount * 0.012);
 
-  rotateY(frameCount * 0.008);
-  rotateX(sin(frameCount * 0.005) * 0.2); 
-  let alturaTotal = 220;
-  let alturaCamada = alturaTotal / numCamadas;
+  let alturaTotal = 240;
+  let alturaCamada = alturaTotal / numLayers;
 
- 
-  for (let i = 0; i < numCamadas; i++) {
+  for (let i = 0; i < numLayers; i++) {
     push();
-
-    let posY = -alturaTotal / 2 + i * (alturaCamada + espacamento);
-
-    let camada = estadosCamadas[i];
-    if (random(1) < 0.15) {
-      camada.offsetGlitch = random(-15, 15);
-    } else {
-      camada.offsetGlitch *= 0.8;
+    
+    let yPos = -alturaTotal / 2 + i * (alturaCamada + espacamentoSuave);
+  
+    let glitchX = 0;
+    let glitchZ = 0;
+    if (random(1) < 0.25) { 
+      glitchX = random(-25, 25);
+      glitchZ = random(-15, 15);
     }
 
-    translate(camada.offsetGlitch, posY, 0);
+    translate(glitchX, yPos, glitchZ);
 
-    let tamanhoBox = map(i, 0, numCamadas, 30, 150);
+    let larguraBase = map(i + 1, 0, numLayers, 18, 180);
 
     if (random(1) < 0.2) {
-      fill(40, 255, 100, 100);
-      stroke(255);
+     
+      if (random(1) < 0.5) {
+        fill(40, 255, 100, 120);
+        stroke(255);
+      } else {
+        fill(200, 0, 255, 120);
+        stroke(0, 255, 200);
+      }
+      strokeWeight(2);
     } else {
+      
       noFill();
-      stroke(0, 255, 200);
+      if (random(1) < 0.5) {
+        stroke(50, 255, 130); 
+      } else {
+        stroke(220, 50, 255); 
+      }
+      strokeWeight(random(1, 3.5));
     }
-    
-    strokeWeight(1.5);
-    box(tamanhoBox, alturaCamada, tamanhoBox);
 
+    box(larguraBase, alturaCamada, larguraBase);
+    
     pop();
   }
 }
