@@ -63,9 +63,8 @@ function draw() {
 
   for (let i = 0; i < numLayers; i++) {
     push();
-    
-    let yPos = -alturaTotal / 2 + i * (alturaCamada + espacamentoSuave);
   
+    let yPos = -alturaTotal / 2 + i * (alturaCamada + espacamentoSuave);
     let glitchX = 0;
     let glitchZ = 0;
     if (random(1) < 0.25) { 
